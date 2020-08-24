@@ -44,7 +44,6 @@ namespace OrderingApp.Repository
             MongoClient = new MongoClient(_settings.ConnectionString);
 
             Database = MongoClient.GetDatabase(_settings.DatabaseName);
-
         }
 
         public IMongoCollection<T> GetCollection<T>(string name)

@@ -5,13 +5,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OrderingApp.Models;
+using OrderingApp.Repository;
 
 namespace OrderingApp.Controllers
 {
     public class HomeController : Controller
     {
+        IProductRepository productRepository;
         public IActionResult Index()
         {
+            productRepository = new ProductRepository(new MongoContext(new MongoDbSettings()));
+
+            productRepository.Add(new Product(""));
+
             return View();
         }
 

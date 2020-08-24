@@ -23,7 +23,7 @@ namespace OrderingApp.Repository.Tests
         [Test()]
         public void AddProductTest()
         {
-            Product product = new Product("test");
+            Product product = new Product("Book", 100);
             _productRepository.Add(product);
             // If everything is ok then:
             _uow.Commit().Wait();
