@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OrderingApp.Interfaces;
-using OrderingApp.Repository;
-using OrderingApp.Services;
+using OrderingApp.Models;
 
 namespace OrderingApp
 {
@@ -39,10 +33,6 @@ namespace OrderingApp
 
             services.AddSingleton<IMongoDbSettings>(sp =>
                 sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
-
-            //services.AddTransient(typeof(IGenericContext<>), typeof(GenericContext<>));
-            //services.AddTransient(typeof(IGenericRepository<>), typeof(Services.GenericRepository<>));
-            services.AddSingleton<BookService>();
 
             services.AddMvc()
                  //.AddJsonOptions(options => options.UseMemberCasing())

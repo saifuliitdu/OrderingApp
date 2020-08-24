@@ -13,4 +13,8 @@
     <PackageReference Include="ServiceStack.Core" Version="5.9.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>
