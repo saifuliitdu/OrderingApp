@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace OrderingApp.Repository
 {
-    public class MongoContext : IMongoContext
+    public class OrderAppContext : IOrderAppContext
     {
         private IMongoDatabase Database { get; set; }
         public MongoClient MongoClient { get; set; }
         private readonly List<Func<Task>> _commands;
         private readonly IMongoDbSettings _settings;
-        public MongoContext(IMongoDbSettings settings)
+        public OrderAppContext(IMongoDbSettings settings)
         {
             _settings = settings;
 

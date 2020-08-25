@@ -11,7 +11,7 @@ namespace OrderingApp.Repository
 {
     public class OrderDetailsRepository : BaseRepository<OrderDetails>, IOrderDetailsRepository
     {
-        public OrderDetailsRepository(IMongoContext context) : base(context)
+        public OrderDetailsRepository(IOrderAppContext context) : base(context)
         {
             
         }

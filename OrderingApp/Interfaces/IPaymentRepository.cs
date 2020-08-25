@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace OrderingApp.Repository
 {
-    public interface ICustomerGroupRepository : IRepository<CustomerGroup>
+    public interface IPaymentRepository : IRepository<Payment>
     {
-       
+        Task<bool> MakePayment(Order order);
+        Task<Payment> GetPaymentDetails(Order order);
     }
 }

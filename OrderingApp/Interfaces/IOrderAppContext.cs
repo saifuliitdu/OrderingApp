@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OrderingApp.Interfaces
 {
-    public interface IMongoContext : IDisposable
+    public interface IOrderAppContext : IDisposable
     {
         void AddCommand(Func<Task> func);
         Task<int> SaveChanges();

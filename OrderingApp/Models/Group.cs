@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace OrderingApp.Models
 {
-    public class CustomerGroup
+    public class Group
     {
-        public CustomerGroup(string name, double discount = 0)
+        public Group(string name, double discount = 0)
         {
             Id = Guid.NewGuid();
             Name = name;

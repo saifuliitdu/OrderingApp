@@ -10,10 +10,10 @@ namespace OrderingApp.Repository
 {
     public abstract class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : class
     {
-        protected readonly IMongoContext Context;
+        protected readonly IOrderAppContext Context;
         protected IMongoCollection<TEntity> DbSet;
 
-        protected BaseRepository(IMongoContext context)
+        protected BaseRepository(IOrderAppContext context)
         {
             Context = context;
             ConfigDbSet();

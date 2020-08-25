@@ -12,14 +12,8 @@ namespace OrderingApp.Models
             Id = Guid.NewGuid();
             Product = product;
         }
-        public OrderDetails(Product product, Order order)
-        {
-            Id = Guid.NewGuid();
-            Product = product;
-            Order = order;
-        }
+      
         public Guid Id { get; set; }
         public Product Product { get; set; }
-        public Order Order { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace OrderingApp.Repository
 {
     public class ProductRepository : BaseRepository<Product>, IProductRepository
     {
-        public ProductRepository(IMongoContext context) : base(context)
+        public ProductRepository(IOrderAppContext context) : base(context)
         {
             
         }

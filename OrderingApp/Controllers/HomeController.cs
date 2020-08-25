@@ -14,13 +14,13 @@ namespace OrderingApp.Controllers
         IProductRepository productRepository;
         public IActionResult Index()
         {
-            productRepository = new ProductRepository(new MongoContext(new MongoDbSettings()));
+            //productRepository = new ProductRepository(new OrderAppContext(new MongoDbSettings()));
 
-            productRepository.Add(new Product(""));
+            //productRepository.Add(new Product(""));
 
             return View();
         }
-
+        //[Bind("")]
         public IActionResult About()
         {
             ViewData["Message"] = "Your application description page.";

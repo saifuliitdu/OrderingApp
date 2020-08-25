@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using OrderingApp.Interfaces;
 using OrderingApp.Models;
 using OrderingApp.Repository;
 
@@ -11,39 +12,33 @@ namespace OrderingApp.Controllers
 {
     public class OrderController : Controller
     {
-        IProductRepository _productRepository;
-        public OrderController(IProductRepository productRepository)
+        IOrderRepository _orderRepository;
+        IUnitOfWork _unitOfWork;
+        public OrderController(IOrderRepository orderRepository, IUnitOfWork unitOfWork)
         {
-            _productRepository = productRepository;
+            _orderRepository = orderRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index()
         {
-            //productRepository = new ProductRepository(new MongoContext(new MongoDbSettings()));
+            var allProducts = _orderRepository.GetAll().Result;
 
-            _productRepository.Add(new Product(""));
-
-            return View();
+            return View(allProducts);
         }
-
-        public IActionResult About()
+        [HttpPost]
+        //[ValidateAntiForgeryToken]
+        public IActionResult Create([Bind] Order order)
         {
-            ViewData["Message"] = "Your application description page.";
-
-            return View();
+            if (ModelState.IsValid)
+            {
+                _orderRepository.Add(order);
+                _unitOfWork.Commit();
+                return RedirectToAction("Index");
+            }
+            return View(order);
         }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
-
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+    
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

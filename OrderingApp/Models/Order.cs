@@ -7,11 +7,12 @@ namespace OrderingApp.Models
 {
     public class Order
     {
-        public Order(Customer customer, ICollection<OrderDetails> orderDetails, double total, double discount, double grandTotal)
+        public Order(Customer customer, ICollection<Product> items, double total, double discount, double grandTotal)
         {
             Id = Guid.NewGuid();
             Customer = customer;
-            OrderDetails = orderDetails;
+            //OrderDetails = orderDetails;
+            Items = items;
             Total = total;
             Discount = discount;
             GrandTotal = grandTotal;
@@ -21,6 +22,7 @@ namespace OrderingApp.Models
         public double Discount { get; set; }
         public double GrandTotal { get; set; }
         public Customer Customer { get; set; }
-        public ICollection<OrderDetails> OrderDetails { get; set; }
+        public ICollection<Product> Items { get; set; }
+        //public ICollection<OrderDetails> OrderDetails { get; set; }
     }
 }

@@ -5,7 +5,7 @@ namespace OrderingApp.Repository
 {
     public class CustomerRepository : BaseRepository<Customer>, ICustomerRepository
     {
-        public CustomerRepository(IMongoContext context) : base(context)
+        public CustomerRepository(IOrderAppContext context) : base(context)
         {
             
         }

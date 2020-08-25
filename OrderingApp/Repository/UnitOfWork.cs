@@ -8,9 +8,9 @@ namespace OrderingApp.Repository
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly IMongoContext _context;
+        private readonly IOrderAppContext _context;
 
-        public UnitOfWork(IMongoContext context)
+        public UnitOfWork(IOrderAppContext context)
         {
             _context = context;
         }

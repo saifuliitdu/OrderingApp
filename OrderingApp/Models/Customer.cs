@@ -12,14 +12,14 @@ namespace OrderingApp.Models
             Id = Guid.NewGuid();
             Name = name;
         }
-        public Customer(string name, CustomerGroup group)
+        public Customer(string name, Group group)
         {
             Id = Guid.NewGuid();
             Name = name;
-            CustomerGroup = group;
+            Group = group;
         }
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public CustomerGroup CustomerGroup { get; set; }
+        public Group Group { get; set; }
     }
 }

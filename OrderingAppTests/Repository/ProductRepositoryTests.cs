@@ -9,14 +9,14 @@ namespace OrderingApp.Repository.Tests
     public class ProductRepositoryTests
     {
         IMongoDbSettings settings;
-        IMongoContext context;
+        IOrderAppContext context;
         IUnitOfWork _uow;
         IProductRepository _productRepository;
         [SetUp]
         public void Setup()
         {
             settings = Utility.GetMongoDbSettings();
-            context = new MongoContext(settings);
+            context = new OrderAppContext(settings);
             _uow = new UnitOfWork(context);
             _productRepository = new ProductRepository(context);
         }

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace OrderingApp.Repository
 {
-    public class CustomerGroupRepository : BaseRepository<CustomerGroup>, ICustomerGroupRepository
+    public class CustomerGroupRepository : BaseRepository<Group>, IGroupRepository
     {
-        public CustomerGroupRepository(IMongoContext context) : base(context)
+        public CustomerGroupRepository(IOrderAppContext context) : base(context)
         {
             
         }
