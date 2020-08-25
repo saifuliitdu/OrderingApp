@@ -28,8 +28,8 @@ namespace OrderingApp
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-            services.Configure<MongoDbSettings>(
-               Configuration.GetSection(nameof(MongoDbSettings)));
+            services.Configure<IMongoDbSettings>(
+               Configuration.GetSection(nameof(IMongoDbSettings)));
 
             services.AddSingleton<IMongoDbSettings>(sp =>
                 sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);

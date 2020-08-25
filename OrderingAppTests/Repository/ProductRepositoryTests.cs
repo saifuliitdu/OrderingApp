@@ -1,20 +1,21 @@
 ﻿using NUnit.Framework;
 using OrderingApp.Interfaces;
 using OrderingApp.Models;
+using OrderingAppTests;
 using System.Linq;
 
 namespace OrderingApp.Repository.Tests
 {
     public class ProductRepositoryTests
     {
-        MongoDbSettings settings;
+        IMongoDbSettings settings;
         IMongoContext context;
         IUnitOfWork _uow;
         IProductRepository _productRepository;
         [SetUp]
         public void Setup()
         {
-            settings = new MongoDbSettings { ConnectionString = "mongodb://localhost:27017", DatabaseName = "Products" };
+            settings = Utility.GetMongoDbSettings();
             context = new MongoContext(settings);
             _uow = new UnitOfWork(context);
             _productRepository = new ProductRepository(context);
@@ -49,6 +50,7 @@ namespace OrderingApp.Repository.Tests
             _uow.Commit();
             testProduct = _productRepository.GetById(testProduct.Result.Id);
             Assert.AreEqual(product.Id, testProduct.Result.Id);
+            Assert.AreEqual(testProduct.Result.Description, product.Description + " updated");
         }
 
         [Test]
@@ -85,10 +87,10 @@ namespace OrderingApp.Repository.Tests
             _productRepository.Add(product);
             // If everything is ok then:
             _uow.Commit().Wait();
-            var getProduct = _productRepository.GetById(product.Id);
+            var testProduct = _productRepository.GetById(product.Id);
 
-            Assert.IsNotNull(getProduct.Result);
-            Assert.AreEqual(getProduct.Result.Description, product.Description);
+            Assert.IsNotNull(testProduct.Result);
+            Assert.AreEqual(testProduct.Result.Description, product.Description);
         }
     }
 }

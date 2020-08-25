@@ -13,8 +13,8 @@ namespace OrderingApp.Repository
         private IMongoDatabase Database { get; set; }
         public MongoClient MongoClient { get; set; }
         private readonly List<Func<Task>> _commands;
-        private readonly MongoDbSettings _settings;
-        public MongoContext(MongoDbSettings settings)
+        private readonly IMongoDbSettings _settings;
+        public MongoContext(IMongoDbSettings settings)
         {
             _settings = settings;
 

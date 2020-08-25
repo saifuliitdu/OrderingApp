@@ -7,6 +7,11 @@ namespace OrderingApp.Models
 {
     public class OrderDetails
     {
+        public OrderDetails(Product product)
+        {
+            Id = Guid.NewGuid();
+            Product = product;
+        }
         public OrderDetails(Product product, Order order)
         {
             Id = Guid.NewGuid();
