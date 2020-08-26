@@ -9,21 +9,21 @@ namespace OrderingApp.Repository
 {
     public class PaymentRepository : BaseRepository<Payment>, IPaymentRepository
     {
-        IUnitOfWork _uow;
+        IUnitOfWork _unitOfWork;
         public PaymentRepository(IOrderAppContext context) : base(context)
         {
             
         }
-        public PaymentRepository(IOrderAppContext context, IUnitOfWork uow) : base(context)
+        public PaymentRepository(IOrderAppContext context, IUnitOfWork unitOfWork) : base(context)
         {
-            _uow = uow;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<bool> MakePayment(Order order)
         {
             Payment payment = new Payment(order, order.GrandTotal, true);
             Add(payment);
-            return await _uow.Commit();
+            return await _unitOfWork.Commit();
         }
         public async Task<Payment> GetPaymentDetails(Order order)
         {

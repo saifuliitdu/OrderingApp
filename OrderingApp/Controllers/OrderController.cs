@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using DnsClient.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 using OrderingApp.Interfaces;
 using OrderingApp.Models;
 using OrderingApp.Repository;
 using OrderingApp.ViewModel;
+using ServiceStack;
 
 namespace OrderingApp.Controllers
 {
@@ -22,11 +21,12 @@ namespace OrderingApp.Controllers
         IProductRepository _productRepository;
         ICustomerRepository _customerRepository;
         IOrderService _orderService;
+        IPaymentRepository _paymentRepository;
         private readonly ILogger<OrderController> _logger;
-        static CreateOrderViewModel CurrentOrder;
-        public OrderController(IOrderRepository orderRepository, IUnitOfWork unitOfWork, IProductRepository productRepository, ICustomerRepository customerRepository, IOrderService orderService, ILogger<OrderController> logger)
+        public OrderController(IOrderRepository orderRepository, IUnitOfWork unitOfWork, IProductRepository productRepository, ICustomerRepository customerRepository, IOrderService orderService, IPaymentRepository paymentRepository, ILogger<OrderController> logger)
         {
             _logger = logger;
+            _paymentRepository = paymentRepository;
             _orderRepository = orderRepository;
             _unitOfWork = unitOfWork;
             _productRepository = productRepository;
@@ -46,78 +46,43 @@ namespace OrderingApp.Controllers
             var allProducts = _productRepository.GetAll().Result;
             var allCustomers = _customerRepository.GetAll().Result;
             CreateOrderViewModel Order;
-            //if (CurrentOrder == null)
-            //{
-            //if (string.IsNullOrEmpty(orderId))
-            //{
-                Order = new CreateOrderViewModel
-                {
-                    //OrderId = Guid.NewGuid().ToString(),
-                    Customers = GetCustomerItemList(allCustomers),
-                    Items = GetProductItemList(allProducts),
-                    //CustomerList = allCustomers.ToList(),
-                    SelectedItems = new List<Product>()
-                };
-            //}
-            //else
-            //{
-            //    var o = _orderRepository.GetById(Guid.Parse(orderId));
-            //    Order = new CreateOrderViewModel
-            //    {
-            //        //OrderId = Guid.NewGuid().ToString(),
-            //        Customers = GetCustomerItemList(allCustomers),
-            //        Items = GetProductItemList(allProducts),
-            //        //CustomerList = allCustomers.ToList(),
-            //        SelectedItems = o.Result.Items.ToList(),
-            //        TotalAmount = o.Result.Total,
-            //        DiscountAmount = o.Result.Discount,
-            //        GrandTotalAmount = o.Result.GrandTotal
-            //    };
-            //}
-             
-            //}
+
+            Order = new CreateOrderViewModel
+            {
+                Customers = GetCustomerItemList(allCustomers),
+                Items = GetProductItemList(allProducts),
+                SelectedItems = new List<Product>()
+            };
+
             return View(Order);
         }
-       
-        //[HttpPost]
-        ////[ValidateAntiForgeryToken]
-        //public IActionResult Create(CreateOrderViewModel order)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        //Order
-
-        //        //_orderRepository.Add(order);
-        //        //_unitOfWork.Commit();
-        //        //return RedirectToAction("Index");
-        //    }
-        //    return View(order);
-        //}
 
         [HttpPost]
-        public IActionResult AddToOrder(CreateOrderViewModel order)
+        public IActionResult AddItemToOrder(CreateOrderViewModel order)
         {
-            Order orderToBeSaved = null;
-            if (string.IsNullOrEmpty(order.OrderId))
-            {
-                orderToBeSaved = new Order();
-                orderToBeSaved.Items = new List<Product>();
-            }
-            else
-            {
-                orderToBeSaved = _orderRepository.GetById(Guid.Parse(order.OrderId)).Result;
-            }
-           
+
             if (ModelState.IsValid)
             {
-                
-                //var existingOrder = _orderRepository.GetById(Guid.Parse(order.OrderId)).Result;
+                Order orderToBeSaved;
+                if (string.IsNullOrEmpty(order.OrderId))
+                {
+                    orderToBeSaved = new Order();
+                    orderToBeSaved.Items = new List<Product>();
+                }
+                else
+                {
+                    orderToBeSaved = _orderRepository.GetById(Guid.Parse(order.OrderId)).Result;
+                }
+
+
                 var existingProduct = _productRepository.GetById(Guid.Parse(order.SelectedItemId)).Result;
                 var existingCustomer = _customerRepository.GetById(Guid.Parse(order.SelectedCustomerId)).Result;
                 var obj = _customerRepository.GetCustomerById();
+
                 var total = order.TotalAmount + existingProduct.Price;
                 var discountAmount = _orderService.CalculateDiscountAmount(existingCustomer.Group.Discount, total);
                 var grandTotal = total - discountAmount;
+
                 orderToBeSaved.Total += total;
                 orderToBeSaved.Discount += discountAmount;
                 orderToBeSaved.GrandTotal += grandTotal;
@@ -128,18 +93,15 @@ namespace OrderingApp.Controllers
                     _orderRepository.Add(orderToBeSaved);
                 else
                     _orderRepository.Update(orderToBeSaved);
+
                 _unitOfWork.Commit().Wait();
-                //CurrentOrder.TotalAmount += total;
-                //CurrentOrder.DiscountAmount += discountAmount;
-                //CurrentOrder.GrandTotalAmount += grandTotal;
-                //CurrentOrder.SelectedItems.Add(existingProduct);
-                //CurrentOrder.SelectedCustomerId = order.SelectedCustomerId;
 
                 order.OrderId = orderToBeSaved.Id.ToString();
                 order.SelectedItems = orderToBeSaved.Items.ToList();
                 order.TotalAmount = orderToBeSaved.Total;
                 order.DiscountAmount = orderToBeSaved.Discount;
                 order.GrandTotalAmount = orderToBeSaved.GrandTotal;
+                order.Discount = existingCustomer.Group.Discount;
 
                 var allProducts = _productRepository.GetAll().Result;
                 var allCustomers = _customerRepository.GetAll().Result;
@@ -149,6 +111,99 @@ namespace OrderingApp.Controllers
             return View("Create", order);
         }
 
+
+        public IActionResult RemoveItemFromOrder(string orderId, string itemId)
+        {
+            //var existingProduct = _productRepository.GetById(Guid.Parse(itemId)).Result;
+            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
+            var existingProduct = existingOrder.Items.FirstOrDefault(f=>f.Id == Guid.Parse(itemId));
+
+            existingOrder.Items.Remove(existingProduct);
+            _orderRepository.Update(existingOrder);
+            _unitOfWork.Commit().Wait();
+
+            var total = existingOrder.Items.Sum(x=>x.Price);
+            var discountAmount = _orderService.CalculateDiscountAmount(existingOrder.Customer.Group.Discount, total);
+            var grandTotal = total - discountAmount;
+
+            var allProducts = _productRepository.GetAll().Result;
+            var allCustomers = _customerRepository.GetAll().Result;
+            CreateOrderViewModel order = new CreateOrderViewModel
+            {
+                OrderId = existingOrder.Id.ToString(),
+                SelectedItems = existingOrder.Items.ToList(),
+                TotalAmount = total,
+                DiscountAmount = discountAmount,
+                GrandTotalAmount = grandTotal,
+                Discount = existingOrder.Customer.Group.Discount,
+                Customers = GetCustomerItemList(allCustomers),
+                Items = GetProductItemList(allProducts),
+                SelectedCustomerId = existingOrder.Customer.Id.ToString()
+            };
+
+            return View("Create", order);
+        }
+
+        public IActionResult Edit(string orderId)
+        {
+            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
+
+            var allProducts = _productRepository.GetAll().Result;
+            var allCustomers = _customerRepository.GetAll().Result;
+            CreateOrderViewModel order = new CreateOrderViewModel
+            {
+                OrderId = existingOrder.Id.ToString(),
+                SelectedItems = existingOrder.Items.ToList(),
+                TotalAmount = existingOrder.Total,
+                DiscountAmount = existingOrder.Discount,
+                GrandTotalAmount = existingOrder.GrandTotal,
+                Discount = existingOrder.Customer.Group.Discount,
+                Customers = GetCustomerItemList(allCustomers),
+                Items = GetProductItemList(allProducts),
+                SelectedCustomerId = existingOrder.Customer.Id.ToString()
+            };
+
+            return View("Create", order);
+        }
+
+        public IActionResult Delete(string orderId)
+        {
+            _orderRepository.Remove(Guid.Parse(orderId));
+            _unitOfWork.Commit().Wait();
+
+            var allOrders = _orderRepository.GetAll().Result;
+            return View("Index", allOrders);
+        }
+
+        public IActionResult Payment(string orderId)
+        {
+            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
+            var existiingPayment = _paymentRepository.GetPaymentDetails(existingOrder).Result;
+            PaymentViewModel payment = new PaymentViewModel
+            {
+                OrderId = existingOrder.Id.ToString(),
+                SelectedItems = existingOrder.Items.ToList(),
+                TotalAmount = existingOrder.Total,
+                DiscountAmount = existingOrder.Discount,
+                GrandTotalAmount = existingOrder.GrandTotal,
+                Discount = existingOrder.Customer.Group.Discount,
+                Customer = existingOrder.Customer,
+                PaymentStatus = (existiingPayment != null && existiingPayment.IsPaid)?  "Paid" : "Pending"
+            };
+            return View(payment);
+        }
+        public IActionResult Checkout(string orderId)
+        {
+            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
+            var existiingPayment = _paymentRepository.GetPaymentDetails(existingOrder).Result;
+            if(existiingPayment == null)
+            {
+                _paymentRepository.MakePayment(existingOrder).Wait();
+            }
+
+            var allOrders = _orderRepository.GetAll().Result;
+            return View("Index", allOrders);
+        }
         #region Dropdownlist 
 
         private List<SelectListItem> GetProductItemList(IEnumerable<Product> allProducts)

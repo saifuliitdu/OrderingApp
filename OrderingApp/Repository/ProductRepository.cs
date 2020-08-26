@@ -14,10 +14,5 @@ namespace OrderingApp.Repository
         {
             
         }
-
-        public void GenerateOrder()
-        {
-            // logic business
-        }
     }
 }

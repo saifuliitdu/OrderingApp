@@ -8,6 +8,6 @@ namespace OrderingApp.Repository
 {
     public interface IProductRepository : IRepository<Product>
     {
-        void GenerateOrder();
+        
     }
 }

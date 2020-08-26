@@ -10,8 +10,8 @@ namespace OrderingAppTests
     {
         public static IMongoDbSettings GetMongoDbSettings()
         {
-            IMongoDbSettings settings = new MongoDbSettings { ConnectionString = "mongodb://localhost:27017", DatabaseName = "Products" };
-            return settings;
+            IMongoDbSettings _settings = new MongoDbSettings { ConnectionString = "mongodb://localhost:27017", DatabaseName = "OrderAppDB" };
+            return _settings;
         }
     }
 }

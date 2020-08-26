@@ -14,22 +14,20 @@ namespace OrderingApp.Repository.Tests
     [TestFixture()]
     public class PaymentRepositoryTests
     {
-        IMongoDbSettings settings;
-        IOrderAppContext context;
-        IUnitOfWork _uow;
+        IMongoDbSettings _settings;
+        IOrderAppContext _context;
+        IUnitOfWork _unitOfWork;
         IPaymentRepository _paymentRepository;
         IOrderRepository _orderRepository;
-        ILogger<IOrderRepository> _logger;
 
         [SetUp]
         public void Setup()
         {
-            _logger = Mock.Of<ILogger<IOrderRepository>>();
-            settings = Utility.GetMongoDbSettings();
-            context = new OrderAppContext(settings);
-            _uow = new UnitOfWork(context);
-            _paymentRepository = new PaymentRepository(context);
-            _orderRepository = new OrderRepository(context, _uow, _logger);
+            _settings = Utility.GetMongoDbSettings();
+            _context = new OrderAppContext(_settings);
+            _unitOfWork = new UnitOfWork(_context);
+            _paymentRepository = new PaymentRepository(_context);
+            _orderRepository = new OrderRepository(_context, _unitOfWork);
         }
 
         [Test()]
@@ -39,7 +37,7 @@ namespace OrderingApp.Repository.Tests
             var order = allOrders.Result.FirstOrDefault();
 
             _paymentRepository.MakePayment(order);
-            var result = _uow.Commit();
+            var result = _unitOfWork.Commit();
 
             Assert.IsTrue(result.Result);
         }

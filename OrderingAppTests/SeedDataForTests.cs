@@ -18,24 +18,22 @@ namespace OrderingApp.Repository.Tests
         IOrderAppContext _context;
         IUnitOfWork _unitOfWork;
         IOrderRepository _orderRepository;
-        IOrderDetailsRepository _orderDetailsRepository;
         IGroupRepository _groupRepository;
         ICustomerRepository _customerRepository;
         IProductRepository _productRepository;
         IPaymentRepository _paymentRepository;
-        ILogger<IOrderRepository> _orderLogger;
+
         [SetUp]
         public void Setup()
         {
             _settings = Utility.GetMongoDbSettings();
             _context = new OrderAppContext(_settings);
             _unitOfWork = new UnitOfWork(_context);
-            _orderDetailsRepository = new OrderDetailsRepository(_context);
             _groupRepository = new GroupRepository(_context);
             _customerRepository = new CustomerRepository(_context);
             _productRepository = new ProductRepository(_context);
             _paymentRepository = new PaymentRepository(_context);
-            _orderRepository = new OrderRepository(_context, _unitOfWork, _orderLogger);
+            _orderRepository = new OrderRepository(_context, _unitOfWork);
         }
         [Test()]
         public void SeedData()

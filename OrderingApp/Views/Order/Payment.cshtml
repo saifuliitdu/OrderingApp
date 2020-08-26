@@ -1,0 +1,67 @@
+﻿
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<h2>Payment Details</h2>
+
+@using OrderingApp.ViewModel;
+@model PaymentViewModel
+
+<div class="col-sm-12">
+    <div class="col-sm-6">
+        <div class="table-responsive px-2 pb-2">
+            <br /><br />
+            <b>Customer Name: @Model.Customer.Name</b><br />
+            <b>Group: @Model.Customer.Group.Name</b><br />
+            <b>Dicount: @Model.Customer.Group.Discount %</b><br />
+            <b>Payment Status: @Model.PaymentStatus</b><br /><br />
+            <table id="orders-list" class="table table-striped">
+                <thead class="thead-light"></thead>
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var selectedItem in Model.SelectedItems)
+                    {
+                        <tr>
+                            <td>@selectedItem.Name</td>
+                            <td>@selectedItem.Price</td>
+                            <td>
+                                <a asp-controller="Order" asp-action="RemoveItemFromOrder" asp-route-orderId="@Model.OrderId" asp-route-itemId="@selectedItem.Id">Remove</a>
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+            <b>Summery</b>
+            <table class="table table-striped">
+
+                <tr>
+                    <td>Total</td>
+                    <td colspan="2" style="text-align:left">@Model.TotalAmount</td>
+                </tr>
+                <tr>
+                    <td>Discount (@Model.Discount)%</td>
+                    <td colspan="2" style="text-align:left">@Model.DiscountAmount</td>
+                </tr>
+                <tr>
+                    <td>Grand Total</td>
+                    <td colspan="2" style="text-align:left">@Model.GrandTotalAmount</td>
+                </tr>
+            </table>
+        </div>
+
+        @if (Model.PaymentStatus != "Paid")
+        {
+            <div class="form-group">
+                <a asp-action="Checkout" asp-route-orderId="@Model.OrderId">Checkout</a>
+            </div>
+        }
+    </div>
+</div>

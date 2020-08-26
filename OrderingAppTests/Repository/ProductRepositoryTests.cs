@@ -8,73 +8,73 @@ namespace OrderingApp.Repository.Tests
 {
     public class ProductRepositoryTests
     {
-        IMongoDbSettings settings;
-        IOrderAppContext context;
-        IUnitOfWork _uow;
+        IMongoDbSettings _settings;
+        IOrderAppContext _context;
+        IUnitOfWork _unitOfWork;
         IProductRepository _productRepository;
         [SetUp]
         public void Setup()
         {
-            settings = Utility.GetMongoDbSettings();
-            context = new OrderAppContext(settings);
-            _uow = new UnitOfWork(context);
-            _productRepository = new ProductRepository(context);
+            _settings = Utility.GetMongoDbSettings();
+            _context = new OrderAppContext(_settings);
+            _unitOfWork = new UnitOfWork(_context);
+            _productRepository = new ProductRepository(_context);
         }
 
         [Test()]
         public void AddProductTest()
         {
-            Product product = new Product("Book", 100);
-            _productRepository.Add(product);
+            Product babyLotion = new Product("Baby Lotion", 100);
+            _productRepository.Add(babyLotion);
             // If everything is ok then:
-            _uow.Commit().Wait();
+            _unitOfWork.Commit().Wait();
 
             // The product will be added only after commit
-            var testProduct = _productRepository.GetById(product.Id);
-            Assert.AreEqual(product.Id, testProduct.Result.Id);
+            var testProduct = _productRepository.GetById(babyLotion.Id);
+            Assert.AreEqual(babyLotion.Id, testProduct.Result.Id);
         }
-
+        
         [Test]
         public void UpdateProductTest()
         {
-            Product product = new Product("test");
-            _productRepository.Add(product);
+            Product babyDoll = new Product("Baby Doll", 100);
+            _productRepository.Add(babyDoll);
             // If everything is ok then:
-            _uow.Commit().Wait();
+            _unitOfWork.Commit().Wait();
 
             // it will be null
-            var testProduct = _productRepository.GetById(product.Id);
-            testProduct.Result.Description = product.Description + " updated";
+            var testProduct = _productRepository.GetById(babyDoll.Id);
+            testProduct.Result.Description = babyDoll.Description + " updated";
             _productRepository.Update(testProduct.Result);
             // If everything is ok then:
-            _uow.Commit();
+            _unitOfWork.Commit();
             testProduct = _productRepository.GetById(testProduct.Result.Id);
-            Assert.AreEqual(product.Id, testProduct.Result.Id);
-            Assert.AreEqual(testProduct.Result.Description, product.Description + " updated");
+            Assert.AreEqual(babyDoll.Id, testProduct.Result.Id);
+            Assert.AreEqual(testProduct.Result.Description, babyDoll.Description + " updated");
         }
 
         [Test]
         public void DeleteProductTest()
         {
-            Product product = new Product("test");
-            _productRepository.Add(product);
+            Product babyMilk = new Product("Baby Milk", 450);
+            _productRepository.Add(babyMilk);
             // If everything is ok then:
-            _uow.Commit().Wait();
+            _unitOfWork.Commit().Wait();
 
-            _productRepository.Remove(product.Id);
+            _productRepository.Remove(babyMilk.Id);
             // If everything is ok then:
-            _uow.Commit();
-            var testProduct = _productRepository.GetById(product.Id);
+            _unitOfWork.Commit();
+            var testProduct = _productRepository.GetById(babyMilk.Id);
             Assert.IsNull(testProduct.Result);
         }
 
         [Test]
         public void GetAllProductsTest()
         {
-            Product product = new Product("test");
-            _productRepository.Add(product);
+            Product babyOil = new Product("Baby Oil", 60);
+            _productRepository.Add(babyOil);
             // If everything is ok then:
-            _uow.Commit().Wait();
+            _unitOfWork.Commit().Wait();
             var allProducts = _productRepository.GetAll().Result;
 
             Assert.IsTrue(allProducts.ToList().Count() > 0);
@@ -83,14 +83,14 @@ namespace OrderingApp.Repository.Tests
         [Test]
         public void GetProductTest()
         {
-            Product product = new Product("test");
-            _productRepository.Add(product);
+            Product babyDress = new Product("Baby Dress", 990);
+            _productRepository.Add(babyDress);
             // If everything is ok then:
-            _uow.Commit().Wait();
-            var testProduct = _productRepository.GetById(product.Id);
+            _unitOfWork.Commit().Wait();
+            var testProduct = _productRepository.GetById(babyDress.Id);
 
             Assert.IsNotNull(testProduct.Result);
-            Assert.AreEqual(testProduct.Result.Description, product.Description);
+            Assert.AreEqual(testProduct.Result.Name, babyDress.Name);
         }
     }
 }

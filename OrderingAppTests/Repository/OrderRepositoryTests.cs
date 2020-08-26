@@ -18,30 +18,26 @@ namespace OrderingApp.Repository.Tests
 {
     public class OrderRepositoryTests
     {
-        IMongoDbSettings settings;
-        IOrderAppContext context;
-        IUnitOfWork _uow;
+        IMongoDbSettings _settings;
+        IOrderAppContext _context;
+        IUnitOfWork _unitOfWork;
         IOrderRepository _orderRepository;
-        IOrderDetailsRepository _orderDetailsRepository;
         IGroupRepository _groupRepository;
         ICustomerRepository _customerRepository;
         IProductRepository _productRepository;
         IPaymentRepository _paymentRepository;
         IOrderService _orderService;
-        ILogger<IOrderRepository> _logger;
         [SetUp]
         public void Setup()
         {
-            _logger = Mock.Of<ILogger<IOrderRepository>>();
-            settings = Utility.GetMongoDbSettings();
-            context = new OrderAppContext(settings);
-            _uow = new UnitOfWork(context);
-            _orderDetailsRepository = new OrderDetailsRepository(context);
-            _groupRepository = new GroupRepository(context);
-            _customerRepository = new CustomerRepository(context);
-            _productRepository = new ProductRepository(context);
-            _paymentRepository = new PaymentRepository(context);
-            _orderRepository = new OrderRepository(context, _uow, _logger);
+            _settings = Utility.GetMongoDbSettings();
+            _context = new OrderAppContext(_settings);
+            _unitOfWork = new UnitOfWork(_context);
+            _groupRepository = new GroupRepository(_context);
+            _customerRepository = new CustomerRepository(_context);
+            _productRepository = new ProductRepository(_context);
+            _paymentRepository = new PaymentRepository(_context);
+            _orderRepository = new OrderRepository(_context, _unitOfWork);
             _orderService = new OrderService();
         }
 
@@ -96,8 +92,8 @@ namespace OrderingApp.Repository.Tests
             var allOrders = _orderRepository.GetAll();
             var order = allOrders.Result.FirstOrDefault();
 
-            var allProducts = _productRepository.GetAll().Result;
-            var babyPampas = allProducts.FirstOrDefault(f => f.Name.Equals("Baby Toy"));
+            //var allProducts = _productRepository.GetAll().Result;
+            var babyPampas = order.Items.FirstOrDefault();//allProducts.FirstOrDefault(f => f.Name.Equals("Baby Toy"));
 
             var result = _orderRepository.RemoveItemFromOrder(order, babyPampas);
 

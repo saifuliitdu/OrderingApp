@@ -12,7 +12,6 @@ namespace OrderingApp.Models
         {
             Id = Guid.NewGuid();
             Customer = customer;
-            //OrderDetails = orderDetails;
             Items = items;
             Total = total;
             Discount = discount;
@@ -24,6 +23,5 @@ namespace OrderingApp.Models
         public double GrandTotal { get; set; }
         public Customer Customer { get; set; }
         public ICollection<Product> Items { get; set; }
-        //public ICollection<OrderDetails> OrderDetails { get; set; }
     }
 }
