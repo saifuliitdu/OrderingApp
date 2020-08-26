@@ -9,7 +9,7 @@ namespace OrderingApp.Repository
 {
     public interface IOrderRepository : IRepository<Order>
     {
-        Task<bool> PlaceOrder(OrderViewModel model);
+        Task<bool> PlaceOrder(Order order);
         Task<bool> AddItemToOrder(Order order, Product product);
         Task<bool> RemoveItemFromOrder(Order order, Product product);
     }

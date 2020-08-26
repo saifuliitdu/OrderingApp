@@ -9,6 +9,6 @@ namespace OrderingApp.Repository
 {
     public interface ICustomerRepository : IRepository<Customer>
     {
-       
+        Customer GetCustomerById();
     }
 }

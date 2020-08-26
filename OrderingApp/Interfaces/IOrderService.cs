@@ -7,6 +7,6 @@ namespace OrderingApp.Interfaces
 {
     public interface IOrderService
     {
-
+        double CalculateDiscountAmount(double discountInPercent, double total);
     }
 }

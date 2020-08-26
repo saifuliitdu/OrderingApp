@@ -7,6 +7,7 @@ namespace OrderingApp.Models
 {
     public class Order
     {
+        public Order() { Id = Guid.NewGuid(); }
         public Order(Customer customer, ICollection<Product> items, double total, double discount, double grandTotal)
         {
             Id = Guid.NewGuid();

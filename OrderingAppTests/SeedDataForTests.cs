@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.Extensions.Logging;
+using NUnit.Framework;
 using OrderingApp.Interfaces;
 using OrderingApp.Models;
 using OrderingApp.Repository;
@@ -18,10 +19,11 @@ namespace OrderingApp.Repository.Tests
         IUnitOfWork _unitOfWork;
         IOrderRepository _orderRepository;
         IOrderDetailsRepository _orderDetailsRepository;
-        IGroupRepository _customerGroupRepository;
+        IGroupRepository _groupRepository;
         ICustomerRepository _customerRepository;
         IProductRepository _productRepository;
         IPaymentRepository _paymentRepository;
+        ILogger<IOrderRepository> _orderLogger;
         [SetUp]
         public void Setup()
         {
@@ -29,11 +31,11 @@ namespace OrderingApp.Repository.Tests
             _context = new OrderAppContext(_settings);
             _unitOfWork = new UnitOfWork(_context);
             _orderDetailsRepository = new OrderDetailsRepository(_context);
-            _customerGroupRepository = new CustomerGroupRepository(_context);
+            _groupRepository = new GroupRepository(_context);
             _customerRepository = new CustomerRepository(_context);
             _productRepository = new ProductRepository(_context);
             _paymentRepository = new PaymentRepository(_context);
-            _orderRepository = new OrderRepository(_context, _unitOfWork, _paymentRepository);
+            _orderRepository = new OrderRepository(_context, _unitOfWork, _orderLogger);
         }
         [Test()]
         public void SeedData()
@@ -52,9 +54,9 @@ namespace OrderingApp.Repository.Tests
             var babyHygine = new Product("Baby Hygine", 50);
             var babyPampas = new Product("Baby Pampas", 120);
 
-            _customerGroupRepository.Add(silverGroup);
-            _customerGroupRepository.Add(goldGroup);
-            _customerGroupRepository.Add(platinumGroup);
+            _groupRepository.Add(silverGroup);
+            _groupRepository.Add(goldGroup);
+            _groupRepository.Add(platinumGroup);
 
             _customerRepository.Add(customerOne);
             _customerRepository.Add(customerTwo);

@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.Extensions.Logging;
+using Moq;
+using NUnit.Framework;
 using OrderingApp.Interfaces;
 using OrderingApp.Repository;
 using OrderingAppTests;
@@ -17,15 +19,17 @@ namespace OrderingApp.Repository.Tests
         IUnitOfWork _uow;
         IPaymentRepository _paymentRepository;
         IOrderRepository _orderRepository;
+        ILogger<IOrderRepository> _logger;
 
         [SetUp]
         public void Setup()
         {
+            _logger = Mock.Of<ILogger<IOrderRepository>>();
             settings = Utility.GetMongoDbSettings();
             context = new OrderAppContext(settings);
             _uow = new UnitOfWork(context);
             _paymentRepository = new PaymentRepository(context);
-            _orderRepository = new OrderRepository(context, _uow);
+            _orderRepository = new OrderRepository(context, _uow, _logger);
         }
 
         [Test()]
