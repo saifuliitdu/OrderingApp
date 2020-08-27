@@ -131,9 +131,8 @@ namespace OrderingApp.Controllers
             try
             {
                 var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
-
-                var allProducts = _productRepository.GetAll().Result;
-                var allCustomers = _customerRepository.GetAll().Result;
+                var payment = _paymentRepository.GetAll().Result.FirstOrDefault(f => f.Order.Id == existingOrder.Id);
+                existingOrder.Payment = payment;
 
                 var createOrderViewModel = GetCreateOrderViewMode(existingOrder);
                 _logger.LogInformation("Edit is clled successfully.");
@@ -241,7 +240,8 @@ namespace OrderingApp.Controllers
                         DiscountAmount = order.Discount,
                         GrandTotalAmount = order.GrandTotal,
                         Discount = order.Customer != null ? order.Customer.Group.Discount : 0,
-                        SelectedCustomerId = order.Customer != null ? order.Customer.Id.ToString() : ""
+                        SelectedCustomerId = order.Customer != null ? order.Customer.Id.ToString() : "",
+                        IsPaid = order.Payment != null? order.Payment.IsPaid : false
                     };
                 }
                 _logger.LogWarning("Create order view model successfully.");

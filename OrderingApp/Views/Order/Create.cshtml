@@ -19,7 +19,7 @@
         <form asp-action="Create">
             <input type="hidden" asp-for="OrderId" value="@Model.OrderId" />
             @*<input type="hidden" asp-for="ProductList" value="@Model.ProductList" />
-            <input type="hidden" asp-for="CustomerList" value="@Model.CustomerList" />*@
+                <input type="hidden" asp-for="CustomerList" value="@Model.CustomerList" />*@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="col-sm-12">
                 <div class="col-sm-6">
@@ -63,7 +63,7 @@
                 <div class="col-sm-6">
                     <div class="form-group">
                         <label asp-for="SelectedCustomerId" class="control-label">Customer</label>
-                       
+
                         <select asp-for="SelectedCustomerId" class="form-control" asp-items="@Model.Customers">
                             <option>Select one</option>
                         </select>
@@ -71,21 +71,28 @@
                     </div>
                     <div class="form-group">
                         <label asp-for="SelectedItemId" class="control-label">Item</label>
-                        
+
                         <select asp-for="SelectedItemId" class="form-control" asp-items="@Model.Items">
                             <option>Select one</option>
                         </select>
                         <span asp-validation-for="SelectedItemId" class="text-danger"></span>
                     </div>
-                    <div class="form-group">
-                        <input type="submit" name="add" value="Add" class="btn btn-default"
-                               formaction="AddItemToOrder" formmethod="post" />
-                    </div>
+                    @if (!Model.IsPaid)
+                    {
+                        <div class="form-group">
+                            <input type="submit" name="add" value="Add" class="btn btn-default"
+                                   formaction="AddItemToOrder" formmethod="post" />
+                        </div>
+                    }
                 </div>
             </div>
-            <div class="form-group">
-                <a class="btn btn-default" asp-action="Payment" asp-route-orderId="@Model.OrderId">Payment</a>
-            </div>
+            @if (!Model.IsPaid)
+            {
+                <div class="form-group">
+                    <a class="btn btn-default" asp-action="Payment" asp-route-orderId="@Model.OrderId">Payment</a>
+                </div>
+            }
+
         </form>
     </div>
 </div>

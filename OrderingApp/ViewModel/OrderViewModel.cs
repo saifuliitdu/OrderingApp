@@ -28,6 +28,7 @@ namespace OrderingApp.ViewModel
         public List<SelectListItem> Customers { get; set; }
         public List<SelectListItem> Items { get; set; }
         public List<Product> SelectedItems { get; set; }
+        public bool IsPaid { get; set; }
         public CreateOrderViewModel()
         {
             SelectedItems = new List<Product>();
