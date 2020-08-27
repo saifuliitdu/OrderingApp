@@ -30,6 +30,28 @@ namespace OrderingApp.Repository
             _paymentRepository = paymentRepository;
         }
 
+        public async Task<IEnumerable<Order>> GetAllOrders()
+        {
+
+            try
+            {
+                var allOrders = GetAll().Result;
+                var allPayments = _paymentRepository.GetAll().Result;
+
+                allOrders.ToList().ForEach(x => {
+
+                    x.Payment = allPayments.FirstOrDefault(f => f.Order.Id == x.Id);
+                });
+
+
+                return allOrders;
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+        }
+
         public async Task<bool> PlaceOrder(Order order)
         {
             try
@@ -39,7 +61,7 @@ namespace OrderingApp.Repository
 
                 return commitResult;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw;
             }
@@ -56,7 +78,7 @@ namespace OrderingApp.Repository
 
                 return commitResult;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw;
             }
@@ -74,7 +96,7 @@ namespace OrderingApp.Repository
 
                 return commitResult;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw;
             }

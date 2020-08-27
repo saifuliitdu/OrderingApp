@@ -78,13 +78,13 @@
                         <span asp-validation-for="SelectedItemId" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <input type="submit" name="add" value="Add"
+                        <input type="submit" name="add" value="Add" class="btn btn-default"
                                formaction="AddItemToOrder" formmethod="post" />
                     </div>
                 </div>
             </div>
             <div class="form-group">
-                <a asp-action="Payment" asp-route-orderId="@Model.OrderId">Payment</a>
+                <a class="btn btn-default" asp-action="Payment" asp-route-orderId="@Model.OrderId">Payment</a>
             </div>
         </form>
     </div>

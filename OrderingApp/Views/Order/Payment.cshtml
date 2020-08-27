@@ -32,7 +32,7 @@
                             <td>@selectedItem.Name</td>
                             <td>@selectedItem.Price</td>
                             <td>
-                                <a asp-controller="Order" asp-action="RemoveItemFromOrder" asp-route-orderId="@Model.OrderId" asp-route-itemId="@selectedItem.Id">Remove</a>
+                                <a class="btn btn-default" asp-controller="Order" asp-action="RemoveItemFromOrder" asp-route-orderId="@Model.OrderId" asp-route-itemId="@selectedItem.Id">Remove</a>
                             </td>
                         </tr>
                     }
@@ -60,7 +60,7 @@
         @if (Model.PaymentStatus != "Paid")
         {
             <div class="form-group">
-                <a asp-action="Checkout" asp-route-orderId="@Model.OrderId">Checkout</a>
+                <a class="btn btn-default" asp-action="Checkout" asp-route-orderId="@Model.OrderId">Checkout</a>
             </div>
         }
     </div>

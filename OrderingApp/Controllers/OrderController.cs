@@ -37,172 +37,222 @@ namespace OrderingApp.Controllers
         public IActionResult Index()
         {
             _logger.LogInformation("The order page has been accessed");
-            var allOrders = _orderRepository.GetAll().Result;
-
+            var allOrders = _orderRepository.GetAllOrders().Result;
+            
             return View(allOrders);
         }
         public IActionResult Create()
         {
-            var allProducts = _productRepository.GetAll().Result;
-            var allCustomers = _customerRepository.GetAll().Result;
-            CreateOrderViewModel Order;
-
-            Order = new CreateOrderViewModel
-            {
-                Customers = GetCustomerItemList(allCustomers),
-                Items = GetProductItemList(allProducts),
-                SelectedItems = new List<Product>()
-            };
-
-            return View(Order);
+            _logger.LogInformation("The create view is called.");
+            var createOrderViewModel = GetCreateOrderViewMode(null);
+            return View(createOrderViewModel);
         }
 
         [HttpPost]
         public IActionResult AddItemToOrder(CreateOrderViewModel order)
         {
-
-            if (ModelState.IsValid)
+            try
             {
-                Order orderToBeSaved;
-                if (string.IsNullOrEmpty(order.OrderId))
+                if (ModelState.IsValid)
                 {
-                    orderToBeSaved = new Order();
-                    orderToBeSaved.Items = new List<Product>();
+                    Order orderToBeSaved;
+                    if (string.IsNullOrEmpty(order.OrderId))
+                        orderToBeSaved = new Order();
+                    else
+                        orderToBeSaved = _orderRepository.GetById(Guid.Parse(order.OrderId)).Result;
+
+                    var existingProduct = _productRepository.GetById(Guid.Parse(order.SelectedItemId)).Result;
+                    var existingCustomer = _customerRepository.GetById(Guid.Parse(order.SelectedCustomerId)).Result;
+
+                    var total = order.TotalAmount + existingProduct.Price;
+                    var discountAmount = _orderService.CalculateDiscountAmount(existingCustomer.Group.Discount, total);
+                    var grandTotal = total - discountAmount;
+
+                    orderToBeSaved.Total += total;
+                    orderToBeSaved.Discount += discountAmount;
+                    orderToBeSaved.GrandTotal += grandTotal;
+                    orderToBeSaved.Items.Add(existingProduct);
+                    orderToBeSaved.Customer = existingCustomer;
+
+                    if (string.IsNullOrEmpty(order.OrderId))
+                        _orderRepository.Add(orderToBeSaved);
+                    else
+                        _orderRepository.Update(orderToBeSaved);
+
+                    _unitOfWork.Commit().Wait();
+
+
+                    var createOrderViewModel = GetCreateOrderViewMode(orderToBeSaved);
+                    _logger.LogInformation("Add item to order is successful.");
+                    return View("Create", createOrderViewModel);
                 }
-                else
-                {
-                    orderToBeSaved = _orderRepository.GetById(Guid.Parse(order.OrderId)).Result;
-                }
-
-
-                var existingProduct = _productRepository.GetById(Guid.Parse(order.SelectedItemId)).Result;
-                var existingCustomer = _customerRepository.GetById(Guid.Parse(order.SelectedCustomerId)).Result;
-                var obj = _customerRepository.GetCustomerById();
-
-                var total = order.TotalAmount + existingProduct.Price;
-                var discountAmount = _orderService.CalculateDiscountAmount(existingCustomer.Group.Discount, total);
-                var grandTotal = total - discountAmount;
-
-                orderToBeSaved.Total += total;
-                orderToBeSaved.Discount += discountAmount;
-                orderToBeSaved.GrandTotal += grandTotal;
-                orderToBeSaved.Items.Add(existingProduct);
-                orderToBeSaved.Customer = existingCustomer;
-
-                if (string.IsNullOrEmpty(order.OrderId))
-                    _orderRepository.Add(orderToBeSaved);
-                else
-                    _orderRepository.Update(orderToBeSaved);
-
-                _unitOfWork.Commit().Wait();
-
-                order.OrderId = orderToBeSaved.Id.ToString();
-                order.SelectedItems = orderToBeSaved.Items.ToList();
-                order.TotalAmount = orderToBeSaved.Total;
-                order.DiscountAmount = orderToBeSaved.Discount;
-                order.GrandTotalAmount = orderToBeSaved.GrandTotal;
-                order.Discount = existingCustomer.Group.Discount;
-
-                var allProducts = _productRepository.GetAll().Result;
-                var allCustomers = _customerRepository.GetAll().Result;
-                order.Customers = GetCustomerItemList(allCustomers);
-                order.Items = GetProductItemList(allProducts);
+                _logger.LogWarning("Add item to order method found model state is invalid.");
+                return View();
             }
-            return View("Create", order);
+            catch (Exception e)
+            {
+                _logger.LogWarning("Add item to order is failed. \nException: " + e.Message);
+                return View();
+            }
         }
 
 
         public IActionResult RemoveItemFromOrder(string orderId, string itemId)
         {
-            //var existingProduct = _productRepository.GetById(Guid.Parse(itemId)).Result;
-            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
-            var existingProduct = existingOrder.Items.FirstOrDefault(f=>f.Id == Guid.Parse(itemId));
-
-            existingOrder.Items.Remove(existingProduct);
-            _orderRepository.Update(existingOrder);
-            _unitOfWork.Commit().Wait();
-
-            var total = existingOrder.Items.Sum(x=>x.Price);
-            var discountAmount = _orderService.CalculateDiscountAmount(existingOrder.Customer.Group.Discount, total);
-            var grandTotal = total - discountAmount;
-
-            var allProducts = _productRepository.GetAll().Result;
-            var allCustomers = _customerRepository.GetAll().Result;
-            CreateOrderViewModel order = new CreateOrderViewModel
+            try
             {
-                OrderId = existingOrder.Id.ToString(),
-                SelectedItems = existingOrder.Items.ToList(),
-                TotalAmount = total,
-                DiscountAmount = discountAmount,
-                GrandTotalAmount = grandTotal,
-                Discount = existingOrder.Customer.Group.Discount,
-                Customers = GetCustomerItemList(allCustomers),
-                Items = GetProductItemList(allProducts),
-                SelectedCustomerId = existingOrder.Customer.Id.ToString()
-            };
+                var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
+                var productToBeDeleted = existingOrder.Items.FirstOrDefault(f => f.Id == Guid.Parse(itemId));
 
-            return View("Create", order);
+                existingOrder.Items.Remove(productToBeDeleted);
+                _orderRepository.Update(existingOrder);
+                _unitOfWork.Commit().Wait();
+
+                var total = existingOrder.Items.Sum(x => x.Price);
+                var discountAmount = _orderService.CalculateDiscountAmount(existingOrder.Customer.Group.Discount, total);
+                var grandTotal = total - discountAmount;
+
+                existingOrder.Total = total;
+                existingOrder.Discount = discountAmount;
+                existingOrder.GrandTotal = grandTotal;
+                var createOrderViewModel = GetCreateOrderViewMode(existingOrder);
+                _logger.LogInformation("Remove item from order is successful.");
+                return View("Create", createOrderViewModel);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Remove item from order is failed. \nException: " + e.Message);
+                return View();
+            }
         }
 
         public IActionResult Edit(string orderId)
         {
-            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
-
-            var allProducts = _productRepository.GetAll().Result;
-            var allCustomers = _customerRepository.GetAll().Result;
-            CreateOrderViewModel order = new CreateOrderViewModel
+            try
             {
-                OrderId = existingOrder.Id.ToString(),
-                SelectedItems = existingOrder.Items.ToList(),
-                TotalAmount = existingOrder.Total,
-                DiscountAmount = existingOrder.Discount,
-                GrandTotalAmount = existingOrder.GrandTotal,
-                Discount = existingOrder.Customer.Group.Discount,
-                Customers = GetCustomerItemList(allCustomers),
-                Items = GetProductItemList(allProducts),
-                SelectedCustomerId = existingOrder.Customer.Id.ToString()
-            };
+                var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
 
-            return View("Create", order);
+                var allProducts = _productRepository.GetAll().Result;
+                var allCustomers = _customerRepository.GetAll().Result;
+
+                var createOrderViewModel = GetCreateOrderViewMode(existingOrder);
+                _logger.LogInformation("Edit is clled successfully.");
+                return View("Create", createOrderViewModel);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Edit is failed. \nException: " + e.Message);
+                return View();
+            }
         }
 
         public IActionResult Delete(string orderId)
         {
-            _orderRepository.Remove(Guid.Parse(orderId));
-            _unitOfWork.Commit().Wait();
+            try
+            {
+                _orderRepository.Remove(Guid.Parse(orderId));
+                _unitOfWork.Commit().Wait();
 
-            var allOrders = _orderRepository.GetAll().Result;
-            return View("Index", allOrders);
+
+                var allOrders = _orderRepository.GetAllOrders().Result;
+                _logger.LogInformation("Delete is successful.");
+                return View("Index", allOrders);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Delete is failed. \nException: " + e.Message);
+                return View();
+            }
         }
 
         public IActionResult Payment(string orderId)
         {
-            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
-            var existiingPayment = _paymentRepository.GetPaymentDetails(existingOrder).Result;
-            PaymentViewModel payment = new PaymentViewModel
+            try
             {
-                OrderId = existingOrder.Id.ToString(),
-                SelectedItems = existingOrder.Items.ToList(),
-                TotalAmount = existingOrder.Total,
-                DiscountAmount = existingOrder.Discount,
-                GrandTotalAmount = existingOrder.GrandTotal,
-                Discount = existingOrder.Customer.Group.Discount,
-                Customer = existingOrder.Customer,
-                PaymentStatus = (existiingPayment != null && existiingPayment.IsPaid)?  "Paid" : "Pending"
-            };
-            return View(payment);
+                var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
+                var existiingPayment = _paymentRepository.GetPaymentDetails(existingOrder).Result;
+                PaymentViewModel payment = new PaymentViewModel
+                {
+                    OrderId = existingOrder.Id.ToString(),
+                    SelectedItems = existingOrder.Items.ToList(),
+                    TotalAmount = existingOrder.Total,
+                    DiscountAmount = existingOrder.Discount,
+                    GrandTotalAmount = existingOrder.GrandTotal,
+                    Discount = existingOrder.Customer.Group.Discount,
+                    Customer = existingOrder.Customer,
+                    PaymentStatus = (existiingPayment != null && existiingPayment.IsPaid) ? "Paid" : "Pending"
+                };
+                _logger.LogInformation("Payment view is called successfully.");
+                return View(payment);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Payment view can't route. \nException: " + e.Message);
+                return View();
+            }
         }
         public IActionResult Checkout(string orderId)
         {
-            var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
-            var existiingPayment = _paymentRepository.GetPaymentDetails(existingOrder).Result;
-            if(existiingPayment == null)
+            try
             {
-                _paymentRepository.MakePayment(existingOrder).Wait();
+                var existingOrder = _orderRepository.GetById(Guid.Parse(orderId)).Result;
+                var existiingPayment = _paymentRepository.GetPaymentDetails(existingOrder).Result;
+                if (existiingPayment == null)
+                {
+                    _paymentRepository.MakePayment(existingOrder).Wait();
+                }
+
+                var allOrders = _orderRepository.GetAllOrders().Result;
+                _logger.LogInformation("Payment confirmation is successful.");
+                return View("Index", allOrders);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Payment confirm is failed. \nException: " + e.Message);
+                return View();
+            }
+        }
+
+        private CreateOrderViewModel GetCreateOrderViewMode(Order order)
+        {
+            try
+            {
+                var allProducts = _productRepository.GetAll().Result;
+                var allCustomers = _customerRepository.GetAll().Result;
+                CreateOrderViewModel createOrderViewModel;
+                if (order == null)
+                {
+                    createOrderViewModel = new CreateOrderViewModel
+                    {
+                        Customers = GetCustomerItemList(allCustomers),
+                        Items = GetProductItemList(allProducts),
+                        SelectedItems = new List<Product>()
+                    };
+                }
+                else
+                {
+                    createOrderViewModel = new CreateOrderViewModel
+                    {
+                        Customers = GetCustomerItemList(allCustomers),
+                        Items = GetProductItemList(allProducts),
+                        OrderId = order.Id.ToString(),
+                        SelectedItems = order.Items.ToList(),
+                        TotalAmount = order.Total,
+                        DiscountAmount = order.Discount,
+                        GrandTotalAmount = order.GrandTotal,
+                        Discount = order.Customer != null ? order.Customer.Group.Discount : 0,
+                        SelectedCustomerId = order.Customer != null ? order.Customer.Id.ToString() : ""
+                    };
+                }
+                _logger.LogWarning("Create order view model successfully.");
+                return createOrderViewModel;
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning("Create order view model failed. \nException: " + e.Message);
+                return new CreateOrderViewModel();
             }
 
-            var allOrders = _orderRepository.GetAll().Result;
-            return View("Index", allOrders);
         }
         #region Dropdownlist 
 
