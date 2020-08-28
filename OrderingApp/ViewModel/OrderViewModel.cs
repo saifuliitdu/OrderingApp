@@ -32,8 +32,9 @@ namespace OrderingApp.ViewModel
         public CreateOrderViewModel()
         {
             SelectedItems = new List<Product>();
+            CustomerList = new List<Customer>();
         }
-        //public List<Customer> CustomerList { get; set; }
+        public List<Customer> CustomerList { get; set; }
     }
 
     public class PaymentViewModel

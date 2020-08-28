@@ -225,7 +225,8 @@ namespace OrderingApp.Controllers
                     {
                         Customers = GetCustomerItemList(allCustomers),
                         Items = GetProductItemList(allProducts),
-                        SelectedItems = new List<Product>()
+                        SelectedItems = new List<Product>(),
+                        CustomerList = allCustomers.ToList()
                     };
                 }
                 else
@@ -241,7 +242,8 @@ namespace OrderingApp.Controllers
                         GrandTotalAmount = order.GrandTotal,
                         Discount = order.Customer != null ? order.Customer.Group.Discount : 0,
                         SelectedCustomerId = order.Customer != null ? order.Customer.Id.ToString() : "",
-                        IsPaid = order.Payment != null? order.Payment.IsPaid : false
+                        IsPaid = order.Payment != null? order.Payment.IsPaid : false,
+                        CustomerList = allCustomers.ToList()
                     };
                 }
                 _logger.LogWarning("Create order view model successfully.");
